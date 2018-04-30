@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/homepage"
+            android:icon="@drawable/icon_homepage"
+            android:title="@string/homepage"/>
+        <item
+            android:id="@+id/follow"
+            android:icon="@drawable/icon_follow"
+            android:title="@string/follow"/>
+        <item
+            android:id="@+id/collection"
+            android:icon="@drawable/icon_collection"
+            android:title="@string/collection"/>
+        <item
+            android:id="@+id/settings"
+            android:icon="@drawable/icon_settings"
+            android:title="@string/settings"/>
+    </group>
+</menu>
