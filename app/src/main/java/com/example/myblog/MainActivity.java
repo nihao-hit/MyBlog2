@@ -1,9 +1,12 @@
 package com.example.myblog;
 
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.IBinder;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -21,6 +24,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import okhttp3.Call;
 import okhttp3.Response;
@@ -32,11 +37,24 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private LinearLayoutManager manager;
     private BlogAdapter adapter;
-    private int number = 1;
+
+    public static boolean flag;
+    private int page = 1;
     private String url;
     private static List<Blog> blogList = new ArrayList<>();
     private MyDatabaseHelper dbHelper = null;
-    private SQLiteDatabase db;
+    public static SQLiteDatabase db;
+    private CacheService.DownloadBinder binder;
+    private ServiceConnection connection = new ServiceConnection(){
+        @Override
+        public void onServiceDisconnected(ComponentName name){
+        }
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service){
+            binder = (CacheService.DownloadBinder)service;
+        }
+    };
+    private Timer timer = new Timer();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         initToolbar();
         initRecyclerView();
         initSwipeRefreshLayout();
+        initCacheService();
         Log.d("Debug:initView执行成功","MainActivity/initView");
     }
     private void initDB(){
@@ -68,9 +87,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Debug:initToolbar执行成功","MainActivity/initToolbar");
     }
     private void initRecyclerView(){
-        boolean flag = HttpUtils.isNetworkConnected(MainActivity.this);
+        flag = HttpUtils.isNetworkConnected(MainActivity.this);
         if (flag){
-            url = "http://wcf.open.cnblogs.com/blog/sitehome/paged/"+number+"/20";
+            url = "http://wcf.open.cnblogs.com/blog/sitehome/paged/"+page+"/20";
             HttpUtils.sendRequest(url,new okhttp3.Callback(){
                 @Override
                 public void onResponse(Call call, Response response)throws IOException{
@@ -80,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void run(){
                             if(blogList != null) {
-                                adapteRecyclerView();
+                                initAdapteRecyclerView();
                                 Log.d("Debug:已联网，初始化列表","MainActivity/initRecyclerView/onResponse");
                             }
                             else{
@@ -122,13 +141,13 @@ public class MainActivity extends AppCompatActivity {
                     blogList.add(blog);
                 }while(cursor.moveToNext());
                 cursor.close();
-                adapteRecyclerView();
+                initAdapteRecyclerView();
                 Log.d("Debug:未联网，读取数据库成功","MainActivity/initRecyclerView");
             }
             else{Log.d("Error:未联网，读取数据库失败","MainActivity/initRecyclerView");}
         }
     }
-    private void adapteRecyclerView(){
+    private void initAdapteRecyclerView(){
         manager = new LinearLayoutManager(MainActivity.this,LinearLayoutManager.VERTICAL,false);
         recyclerView.setLayoutManager(manager);
         adapter = new BlogAdapter(blogList);
@@ -141,8 +160,8 @@ public class MainActivity extends AppCompatActivity {
             public void onRefresh(){
                 boolean flag = HttpUtils.isNetworkConnected(MainActivity.this);
                 if (flag){
-                    number++;
-                    url = "http://wcf.open.cnblogs.com/blog/sitehome/paged/"+number+"/20";
+                    page++;
+                    url = "http://wcf.open.cnblogs.com/blog/sitehome/paged/"+page+"/20";
                     HttpUtils.sendRequest(url,new okhttp3.Callback(){
                         @Override
                         public void onResponse(Call call,Response response)throws IOException{
@@ -157,8 +176,13 @@ public class MainActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable(){
                                     @Override
                                     public void run(){
-                                        adapter.notifyDataSetChanged();
-                                        refresh.setRefreshing(false);
+                                        if(adapter == null){
+                                            initAdapteRecyclerView();
+                                        }
+                                        else{
+                                            adapter.notifyDataSetChanged();
+                                            refresh.setRefreshing(false);
+                                        }
                                         Log.d("Debug:刷新数据成功","MainActivity/initSwipeRefreshLayout/onRefresh/onResponse");
                                     }
                                 });
@@ -184,6 +208,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void initCacheService(){
+        Intent intent = new Intent(this,CacheService.class);
+        bindService(intent,connection,BIND_AUTO_CREATE);
+        timer.schedule(new TimerTask(){
+            @Override
+            public void run(){
+                binder.doCacheBlog(db,blogList);
+                binder.doCacheBlogDetail(db,blogList);
+            }
+        },60000,60000);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
@@ -195,53 +232,11 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
-    private void doCache(){
-        Log.d("eee","fuck");
-        db.delete("Blog",null,null);
-        db.delete("BlogDetail",null,null);
-        final ContentValues values = new ContentValues();
-        List<Blog> cacheBlogList = blogList;
-        for (Blog blog:cacheBlogList){
-            Log.d("eee",blog.getBlogId());
-        }
-        if (cacheBlogList != null){
-            for (Blog blog:cacheBlogList){
-                values.put("blogId",blog.getBlogId());
-                values.put("blogTitle",blog.getBlogTitle());
-                values.put("blogSummary",blog.getBlogSummary());
-                values.put("blogPublish",blog.getBlogPublish());
-                values.put("blogLink",blog.getBlogLink());
-                values.put("authorName",blog.getAuthorName());
-                values.put("authorAvatar",blog.getAuthorAvatar());
-                values.put("authorUri",blog.getAuthorUri());
-                values.put("blogComments",blog.getBlogComments());
-                values.put("blogViews",blog.getBlogViews());
-                values.put("blogDiggs",blog.getBlogDiggs());
-                db.insert("Blog",null,values);
-                values.clear();
-                Log.d("Debug:Blog缓存成功","MainActivity/doCache");
-
-                String dbUrl = "http://wcf.open.cnblogs.com/blog/post/body/";
-                HttpUtils.sendRequest(dbUrl+blog.getBlogId(),new okhttp3.Callback(){
-                    @Override
-                    public void onResponse(Call call,Response response)throws IOException{
-                        String data = response.body().string();
-                        String parsedData = HttpUtils.getBlogDetail(data);
-                        values.put("blogId",parsedData);
-                        db.insert("BlogDetail",null,values);
-                        values.clear();
-                        Log.d("Debug:BlogDetail缓存成功","MainActivity/doCache/onResponse");
-                    }
-                    @Override
-                    public void onFailure(Call call,IOException e){
-                        Log.e("Error","MainActivity/doCache/onFailure");
-                    }
-                });
-            }
-            db.close();
-        }
-        else{
-            Log.d("Error:blogList is null","MainActivity/doCache");
-        }
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        timer.cancel();
+        unbindService(connection);
+        db.close();
     }
 }

@@ -1,7 +1,11 @@
 package com.example.myblog;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LevelListDrawable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
@@ -17,6 +21,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 
 import java.io.IOException;
 
@@ -57,25 +63,56 @@ public class BlogDetailActivity extends AppCompatActivity {
         collapsing.setTitle(TITLE);
     }
     private void initBlogDetail(){
-        String url = "http://wcf.open.cnblogs.com/blog/post/body/"+ID;
-        HttpUtils.sendRequest(url,new okhttp3.Callback(){
-            @Override
-            public void onResponse(Call call, Response response)throws IOException{
-                String data = response.body().string();
-                final String blogDetailData = HttpUtils.getBlogDetail(data);
-                runOnUiThread(new Runnable(){
-                    @Override
-                    public void run(){
-                        blogDetail.setText(Html.fromHtml(blogDetailData));
-                    }
-                });
+        if(MainActivity.flag){
+            String url = "http://wcf.open.cnblogs.com/blog/post/body/"+ID;
+            HttpUtils.sendRequest(url,new okhttp3.Callback(){
+                @Override
+                public void onResponse(Call call, Response response)throws IOException{
+                    String data = response.body().string();
+                    final String blogDetailData = HttpUtils.getBlogDetail(data);
+                    runOnUiThread(new Runnable(){
+                        @Override
+                        public void run(){
+                            blogDetail.setText(Html.fromHtml(blogDetailData,mImageGetter,null));
+                        }
+                    });
+                }
+                @Override
+                public void onFailure(Call call, IOException e){
+                    Log.e("Error","BlogDetailActivity/initBlogDetail/onFailure");
+                }
+            });
+        }
+        else{
+            Cursor cursor = MainActivity.db.query("BlogDetail",new String[]{"blogDetail"},"blogId=?",new String[]{ID},null,null,null);
+            if(cursor.moveToFirst()){
+                String data = cursor.getString(cursor.getColumnIndex("blogDetail"));
+                blogDetail.setText(Html.fromHtml(data));
             }
-            @Override
-            public void onFailure(Call call, IOException e){
-                Log.e("Error","BlogDetailActivity/initBlogDetail/onFailure");
-            }
-        });
+
+
+        }
     }
+    Html.ImageGetter mImageGetter = new Html.ImageGetter(){
+        @Override
+        public Drawable getDrawable(String source){
+            final LevelListDrawable drawable = new LevelListDrawable();
+            Glide.with(BlogDetailActivity.this).load(source).asBitmap().into(new SimpleTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                    if(resource != null) {
+                        BitmapDrawable bitmapDrawable = new BitmapDrawable(resource);
+                        drawable.addLevel(1, 1, bitmapDrawable);
+                        drawable.setBounds(0, 0, resource.getWidth(),resource.getHeight());
+                        drawable.setLevel(1);
+                        blogDetail.invalidate();
+                        blogDetail.setText(blogDetail.getText());
+                    }
+                }
+            });
+            return drawable;
+        }
+    };
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
