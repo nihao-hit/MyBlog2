@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/homepage"
+            android:id="@+id/essay"
             android:icon="@drawable/icon_homepage"
-            android:title="@string/homepage"/>
+            android:title="@string/essay"/>
         <item
             android:id="@+id/follow"
             android:icon="@drawable/icon_follow"

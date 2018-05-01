@@ -38,6 +38,9 @@
     <connection id="6fd07c8c-2db1-414c-882f-dfda0c2ebf51" />
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-list connection-id="6fd07c8c-2db1-414c-882f-dfda0c2ebf51" dataset="main.Essay" active-filter-id="03fd0302-a73b-4cdc-92a1-9b311fee825d">
+      <filter id="03fd0302-a73b-4cdc-92a1-9b311fee825d" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND" />
+    </filter-list>
     <filter-list connection-id="6fd07c8c-2db1-414c-882f-dfda0c2ebf51" dataset="main.Blog" active-filter-id="3b1640ea-6655-4bdb-b5bd-75c192f9a085">
       <filter id="3b1640ea-6655-4bdb-b5bd-75c192f9a085" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND" />
     </filter-list>

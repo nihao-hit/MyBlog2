@@ -19,12 +19,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".MainActivity" />
         <activity android:name=".BlogDetailActivity" />
+
         <service
             android:name=".CacheService"
             android:enabled="true"
             android:exported="true" />
+
+        <activity
+            android:name=".EssayActivity"
+            android:label="我的随笔"/>
+        <activity
+            android:name=".UpdateEssayActivity"
+            android:label="修改随笔"/>
+        <activity android:name=".AddEssayActivity"
+            android:label="添加随笔"/>
     </application>
 
 </manifest>

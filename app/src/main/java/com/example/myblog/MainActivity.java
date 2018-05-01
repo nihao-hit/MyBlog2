@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -32,6 +33,7 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
     private Toolbar toolbar;
     private SwipeRefreshLayout refresh;
     private RecyclerView recyclerView;
@@ -54,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             binder = (CacheService.DownloadBinder)service;
         }
     };
-    private Timer timer = new Timer();
+    private Timer timer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +65,20 @@ public class MainActivity extends AppCompatActivity {
     }
     private void initView(){
         drawerLayout = (DrawerLayout)findViewById(R.id.layout_drawer);
+        navigationView = (NavigationView)findViewById(R.id.view_navigation);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener(){
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item){
+                switch(item.getItemId()){
+                    case R.id.essay:
+                        Intent intent = new Intent(MainActivity.this,EssayActivity.class);
+                        startActivity(intent);
+                        break;
+
+                }
+                return true;
+            }
+        });
         toolbar = (Toolbar)findViewById(R.id.toolbar);
         refresh = (SwipeRefreshLayout)findViewById(R.id.layout_refresh);
         recyclerView = (RecyclerView)findViewById(R.id.view_recycler);
@@ -70,11 +86,10 @@ public class MainActivity extends AppCompatActivity {
         initToolbar();
         initRecyclerView();
         initSwipeRefreshLayout();
-        initCacheService();
         Log.d("Debug:initView执行成功","MainActivity/initView");
     }
     private void initDB(){
-        dbHelper = new MyDatabaseHelper(MainActivity.this,"MyBlogDB.db",null,1);
+        dbHelper = new MyDatabaseHelper(MainActivity.this,"MyBlogDB.db",null,3);
         db = dbHelper.getWritableDatabase();
     }
     private void initToolbar(){
@@ -209,28 +224,33 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void initCacheService(){
-        Intent intent = new Intent(this,CacheService.class);
-        bindService(intent,connection,BIND_AUTO_CREATE);
-        timer.schedule(new TimerTask(){
-            @Override
-            public void run(){
-                binder.doCacheBlog(db,blogList);
-                binder.doCacheBlogDetail(db,blogList);
-            }
-        },60000,60000);
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
             case android.R.id.home:
                 drawerLayout.openDrawer(GravityCompat.START);
                 break;
-            default:
-                break;
         }
         return true;
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
+        Intent intent = new Intent(this,CacheService.class);
+        bindService(intent,connection,BIND_AUTO_CREATE);
+        timer = new Timer();
+        timer.schedule(new TimerTask(){
+            @Override
+            public void run(){
+                binder.doCacheBlog(db,blogList);
+                binder.doCacheBlogDetail(db,blogList);
+            }
+        },3000,60000);
+    }
+    @Override
+    protected void onPause(){
+        super.onPause();
+        timer.cancel();
     }
     @Override
     protected void onDestroy(){
