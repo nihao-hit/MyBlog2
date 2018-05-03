@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -35,6 +37,7 @@ public class BlogDetailActivity extends AppCompatActivity {
     private TextView blogDetail;
     private String TITLE;
     private String ID;
+    private FloatingActionButton floating;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,8 +54,16 @@ public class BlogDetailActivity extends AppCompatActivity {
         toolbar = (Toolbar)findViewById(R.id.toolbar);
         collapsing = (CollapsingToolbarLayout)findViewById(R.id.layout_collapsing);
         blogDetail = (TextView)findViewById(R.id.blogDetail);
+        floating = (FloatingActionButton)findViewById(R.id.collect);
         initCollapsingToolbarLayout();
         initBlogDetail();
+        floating.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Intent intent = new Intent(BlogDetailActivity.this,AddEssayActivity.class);
+                startActivity(intent);
+            }
+        });
     }
     private void initCollapsingToolbarLayout(){
         setSupportActionBar(toolbar);

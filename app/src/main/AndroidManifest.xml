@@ -12,13 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".WelcomeActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        <activity android:name=".WelcomeActivity"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <activity android:name=".MainActivity" />
         <activity android:name=".BlogDetailActivity" />
 
@@ -29,12 +24,20 @@
 
         <activity
             android:name=".EssayActivity"
-            android:label="我的随笔"/>
+            android:label="我的随笔" />
         <activity
             android:name=".UpdateEssayActivity"
-            android:label="修改随笔"/>
-        <activity android:name=".AddEssayActivity"
-            android:label="添加随笔"/>
+            android:label="修改随笔" />
+        <activity
+            android:name=".AddEssayActivity"
+            android:label="添加随笔" />
+        <activity android:name=".TabActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

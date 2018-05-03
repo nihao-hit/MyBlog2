@@ -17,13 +17,14 @@ import okhttp3.Response;
 public class CacheService extends Service {
     private DownloadBinder binder = new DownloadBinder();
     class DownloadBinder extends Binder {
-        public void doCacheBlog(final SQLiteDatabase db,List<Blog> blogList){
+        public void doCache(final SQLiteDatabase db,List<Blog> blogList){
             db.beginTransaction();
             try{
                 db.delete("Blog",null,null);
-                ContentValues values = new ContentValues();
+                db.delete("BlogDetail",null,null);
+                final ContentValues values = new ContentValues();
                 List<Blog> cacheBlogList = blogList;
-                for(Blog blog:cacheBlogList){
+                for(final Blog blog:cacheBlogList){
                     values.put("blogId",blog.getBlogId());
                     values.put("blogTitle",blog.getBlogTitle());
                     values.put("blogSummary",blog.getBlogSummary());
@@ -38,40 +39,24 @@ public class CacheService extends Service {
                     long number = db.insert("Blog",null,values);
                     values.clear();
                     Log.d("Debug:Blog缓存成功",String.valueOf(number));
-                }
-            }finally{
-                db.endTransaction();
-            }
-        }
-        public void doCacheBlogDetail(final SQLiteDatabase db,List<Blog> blogList){
-            db.beginTransaction();
-            try{
-                db.delete("BlogDetail",null,null);
-                final ContentValues values = new ContentValues();
-                List<Blog> cacheBlogList = blogList;
-                if (cacheBlogList != null){
-                    for (final Blog blog:cacheBlogList){
-                        String dbUrl = "http://wcf.open.cnblogs.com/blog/post/body/";
-                        HttpUtils.sendRequest(dbUrl+blog.getBlogId(),new okhttp3.Callback(){
-                            @Override
-                            public void onResponse(Call call, Response response)throws IOException {
-                                String data = response.body().string();
-                                String parsedData = HttpUtils.getBlogDetail(data);
-                                values.put("blogId",blog.getBlogId());
-                                values.put("blogDetail",parsedData);
-                                db.insert("BlogDetail",null,values);
-                                values.clear();
-                                Log.d("Debug:BlogDetail缓存成功",blog.getBlogId());
-                            }
-                            @Override
-                            public void onFailure(Call call,IOException e){
-                                Log.e("Error","MainActivity/doCache/onFailure");
-                            }
-                        });
-                    }
-                }
-                else{
-                    Log.d("Error:blogList is null","MainActivity/doCache");
+
+                    String dbUrl = "http://wcf.open.cnblogs.com/blog/post/body/";
+                    HttpUtils.sendRequest(dbUrl+blog.getBlogId(),new okhttp3.Callback(){
+                        @Override
+                        public void onResponse(Call call, Response response)throws IOException {
+                            String data = response.body().string();
+                            String parsedData = HttpUtils.getBlogDetail(data);
+                            values.put("blogId",blog.getBlogId());
+                            values.put("blogDetail",parsedData);
+                            db.insert("BlogDetail",null,values);
+                            values.clear();
+                            Log.d("Debug:BlogDetail缓存成功",blog.getBlogId());
+                        }
+                        @Override
+                        public void onFailure(Call call,IOException e){
+                            Log.e("Error","MainActivity/doCache/onFailure");
+                        }
+                    });
                 }
             }finally{
                 db.endTransaction();

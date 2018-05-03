@@ -57,12 +57,15 @@ public class MainActivity extends AppCompatActivity {
         }
     };
     private Timer timer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_drawer);
         initView();
+        StartTimer();
     }
+
     private void initView(){
         drawerLayout = (DrawerLayout)findViewById(R.id.layout_drawer);
         navigationView = (NavigationView)findViewById(R.id.view_navigation);
@@ -88,10 +91,12 @@ public class MainActivity extends AppCompatActivity {
         initSwipeRefreshLayout();
         Log.d("Debug:initView执行成功","MainActivity/initView");
     }
+
     private void initDB(){
         dbHelper = new MyDatabaseHelper(MainActivity.this,"MyBlogDB.db",null,3);
         db = dbHelper.getWritableDatabase();
     }
+
     private void initToolbar(){
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -101,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.d("Debug:initToolbar执行成功","MainActivity/initToolbar");
     }
+
     private void initRecyclerView(){
         flag = HttpUtils.isNetworkConnected(MainActivity.this);
         if (flag){
@@ -162,12 +168,14 @@ public class MainActivity extends AppCompatActivity {
             else{Log.d("Error:未联网，读取数据库失败","MainActivity/initRecyclerView");}
         }
     }
+
     private void initAdapteRecyclerView(){
         manager = new LinearLayoutManager(MainActivity.this,LinearLayoutManager.VERTICAL,false);
         recyclerView.setLayoutManager(manager);
         adapter = new BlogAdapter(blogList);
         recyclerView.setAdapter(adapter);
     }
+
     private void initSwipeRefreshLayout(){
         refresh.setColorSchemeResources(R.color.colorPrimary);
         refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener(){
@@ -224,6 +232,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void StartTimer(){
+        Intent intent = new Intent(this,CacheService.class);
+        bindService(intent,connection,BIND_AUTO_CREATE);
+        timer = new Timer();
+        timer.schedule(new TimerTask(){
+            @Override
+            public void run(){
+                binder.doCache(db,blogList);
+            }
+        },3000,600000);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
@@ -233,25 +253,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
-    @Override
-    protected void onResume(){
-        super.onResume();
-        Intent intent = new Intent(this,CacheService.class);
-        bindService(intent,connection,BIND_AUTO_CREATE);
-        timer = new Timer();
-        timer.schedule(new TimerTask(){
-            @Override
-            public void run(){
-                binder.doCacheBlog(db,blogList);
-                binder.doCacheBlogDetail(db,blogList);
-            }
-        },3000,60000);
-    }
-    @Override
-    protected void onPause(){
-        super.onPause();
-        timer.cancel();
-    }
+
     @Override
     protected void onDestroy(){
         super.onDestroy();

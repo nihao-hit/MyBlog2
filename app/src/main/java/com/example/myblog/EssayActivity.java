@@ -66,9 +66,7 @@ public class EssayActivity extends AppCompatActivity {
         finish();
         return super.onSupportNavigateUp();
     }
-    @Override
-    protected void onResume(){
-        super.onResume();
+    public void myOnResume(){
         adapter.notifyDataSetChanged();
     }
     public static void refreshAdapter(){
