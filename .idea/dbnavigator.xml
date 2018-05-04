@@ -43,6 +43,7 @@
     <filter-list connection-id="6fd07c8c-2db1-414c-882f-dfda0c2ebf51" dataset="main.BlogDetail" active-filter-id="e67b1e2d-81a0-456a-8c56-fb7da287f093">
       <filter id="e67b1e2d-81a0-456a-8c56-fb7da287f093" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND" />
     </filter-list>
+    <filter-list connection-id="6fd07c8c-2db1-414c-882f-dfda0c2ebf51" dataset="main.android_metadata" active-filter-id="" />
   </component>
   <component name="DBNavigator.Project.EditorStateManager">
     <last-used-providers />

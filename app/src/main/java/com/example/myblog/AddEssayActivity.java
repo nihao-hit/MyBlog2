@@ -46,10 +46,11 @@ public class AddEssayActivity extends AppCompatActivity implements View.OnClickL
                     values.put("essayTitle",title);
                     values.put("essayDate",essayDate);
                     values.put("essayContent",content);
-                    MainActivity.db.insert("Essay",null,values);
+                    TabActivity.db.insert("Essay",null,values);
                     values.clear();
 
                     EssayActivity.refreshAdapter();
+                    EssayActivity.adapter.notifyDataSetChanged();
                     finish();
                 }
                 break;

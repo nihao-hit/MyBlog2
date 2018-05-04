@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -43,27 +44,36 @@ public class MainActivity extends AppCompatActivity {
     public static boolean flag;
     private int page = 1;
     private String url;
-    private static List<Blog> blogList = new ArrayList<>();
-    private MyDatabaseHelper dbHelper = null;
-    public static SQLiteDatabase db;
-    private CacheService.DownloadBinder binder;
+    public static List<Blog> blogList = new ArrayList<>();
+    //private MyDatabaseHelper dbHelper = null;
+    //public static SQLiteDatabase db;
+    /*private CacheService.DownloadBinder binder;
+    private Timer timer;
     private ServiceConnection connection = new ServiceConnection(){
         @Override
         public void onServiceDisconnected(ComponentName name){
+            Log.d("Debug","dddd");
         }
         @Override
         public void onServiceConnected(ComponentName name, IBinder service){
             binder = (CacheService.DownloadBinder)service;
+            timer = new Timer();
+            timer.schedule(new TimerTask(){
+                @Override
+                public void run(){
+                    Log.d("Debug","eee");
+                    binder.doCache(TabActivity.db,blogList);
+                }
+            },0,600000);
         }
-    };
-    private Timer timer;
+    };*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_drawer);
+        //bindService();
         initView();
-        StartTimer();
     }
 
     private void initView(){
@@ -73,11 +83,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(MenuItem item){
                 switch(item.getItemId()){
-                    case R.id.essay:
-                        Intent intent = new Intent(MainActivity.this,EssayActivity.class);
-                        startActivity(intent);
+                    case R.id.blog:
+                        drawerLayout.closeDrawer(GravityCompat.START);
                         break;
-
                 }
                 return true;
             }
@@ -85,17 +93,16 @@ public class MainActivity extends AppCompatActivity {
         toolbar = (Toolbar)findViewById(R.id.toolbar);
         refresh = (SwipeRefreshLayout)findViewById(R.id.layout_refresh);
         recyclerView = (RecyclerView)findViewById(R.id.view_recycler);
-        initDB();
         initToolbar();
         initRecyclerView();
         initSwipeRefreshLayout();
         Log.d("Debug:initView执行成功","MainActivity/initView");
     }
 
-    private void initDB(){
-        dbHelper = new MyDatabaseHelper(MainActivity.this,"MyBlogDB.db",null,3);
-        db = dbHelper.getWritableDatabase();
-    }
+    /*private void initDB(){
+        TabActivity.helper = new MyDatabaseHelper(MainActivity.this,"MyBlogDB.db",null,3);
+        TabActivity.db = TabActivity.helper.getWritableDatabase();
+    }*/
 
     private void initToolbar(){
         setSupportActionBar(toolbar);
@@ -110,6 +117,8 @@ public class MainActivity extends AppCompatActivity {
     private void initRecyclerView(){
         flag = HttpUtils.isNetworkConnected(MainActivity.this);
         if (flag){
+            TabActivity.db.delete("Blog",null,null);
+            TabActivity.db.delete("BlogDetail",null,null);
             url = "http://wcf.open.cnblogs.com/blog/sitehome/paged/"+page+"/20";
             HttpUtils.sendRequest(url,new okhttp3.Callback(){
                 @Override
@@ -142,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
             dialog.setMessage("请连接网络！！！");
             dialog.setCancelable(true);
             dialog.show();
-            Cursor cursor = db.query("Blog",null,null,null,null,null,null,null);
+            Cursor cursor = TabActivity.db.query("Blog",null,null,null,null,null,null,null);
             if (cursor.moveToFirst()){
                 //
                 //blogList = new ArrayList<>();
@@ -232,17 +241,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void StartTimer(){
+    /*private void bindService(){
         Intent intent = new Intent(this,CacheService.class);
         bindService(intent,connection,BIND_AUTO_CREATE);
-        timer = new Timer();
-        timer.schedule(new TimerTask(){
-            @Override
-            public void run(){
-                binder.doCache(db,blogList);
-            }
-        },3000,600000);
-    }
+        while(binder == null){
+            Log.d("Debug","binder is null");
+            unbindService(connection);
+            bindService(intent,connection,BIND_AUTO_CREATE);
+        }
+    }*/
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
@@ -257,8 +264,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        timer.cancel();
-        unbindService(connection);
-        db.close();
+        //timer.cancel();
+        //unbindService(connection);
+        //TabActivity.db.close();
     }
 }

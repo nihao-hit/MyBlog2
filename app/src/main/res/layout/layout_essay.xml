@@ -32,7 +32,7 @@
         android:id="@+id/add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_margin="40dp"
         android:src="@drawable/icon_add"
         android:layout_gravity="bottom|right"/>
 </android.support.design.widget.CoordinatorLayout>

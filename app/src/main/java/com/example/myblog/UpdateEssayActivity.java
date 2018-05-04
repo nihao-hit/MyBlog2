@@ -44,7 +44,7 @@ public class UpdateEssayActivity extends AppCompatActivity implements View.OnCli
         Intent intent = getIntent();
         String id = intent.getStringExtra("id");
         Log.d("eee",id+"updateessayactivity");
-        Cursor cursor = MainActivity.db.query("Essay",null,"essayId=?",new String[]{id},null,null,null);
+        Cursor cursor = TabActivity.db.query("Essay",null,"essayId=?",new String[]{id},null,null,null);
         if(cursor.moveToFirst()) {
             essay.setId(cursor.getString(cursor.getColumnIndex("essayId")));
             essay.setTitle(cursor.getString(cursor.getColumnIndex("essayTitle")));
@@ -64,10 +64,11 @@ public class UpdateEssayActivity extends AppCompatActivity implements View.OnCli
                     ContentValues values = new ContentValues();
                     values.put("essayTitle",title);
                     values.put("essayContent",content);
-                    MainActivity.db.update("Essay",values,"essayId=?",new String[]{String.valueOf(essay.getId())});
+                    TabActivity.db.update("Essay",values,"essayId=?",new String[]{String.valueOf(essay.getId())});
                     values.clear();
 
                     EssayActivity.refreshAdapter();
+                    EssayActivity.adapter.notifyDataSetChanged();
                     finish();
                 }
                 break;
@@ -75,8 +76,9 @@ public class UpdateEssayActivity extends AppCompatActivity implements View.OnCli
                 finish();
                 break;
             case R.id.delete_essay:
-                MainActivity.db.delete("Essay","essayId=?",new String[]{String.valueOf(essay.getId())});
+                TabActivity.db.delete("Essay","essayId=?",new String[]{String.valueOf(essay.getId())});
                 EssayActivity.refreshAdapter();
+                EssayActivity.adapter.notifyDataSetChanged();
                 finish();
                 break;
         }

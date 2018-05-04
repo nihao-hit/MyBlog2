@@ -1,5 +1,6 @@
 package com.example.myblog;
 
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -38,6 +39,7 @@ public class BlogDetailActivity extends AppCompatActivity {
     private String TITLE;
     private String ID;
     private FloatingActionButton floating;
+    private Context context = this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,7 +97,7 @@ public class BlogDetailActivity extends AppCompatActivity {
             });
         }
         else{
-            Cursor cursor = MainActivity.db.query("BlogDetail",new String[]{"blogDetail"},"blogId=?",new String[]{ID},null,null,null);
+            Cursor cursor = TabActivity.db.query("BlogDetail",new String[]{"blogDetail"},"blogId=?",new String[]{ID},null,null,null);
             if(cursor.moveToFirst()){
                 String data = cursor.getString(cursor.getColumnIndex("blogDetail"));
                 blogDetail.setText(Html.fromHtml(data));
@@ -108,7 +110,8 @@ public class BlogDetailActivity extends AppCompatActivity {
         @Override
         public Drawable getDrawable(String source){
             final LevelListDrawable drawable = new LevelListDrawable();
-            Glide.with(BlogDetailActivity.this).load(source).asBitmap().into(new SimpleTarget<Bitmap>() {
+            Log.d("Debug","BlogDetailActivity/imageGetter");
+            Glide.with(getApplicationContext()).load(source).asBitmap().into(new SimpleTarget<Bitmap>() {
                 @Override
                 public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
                     if(resource != null) {

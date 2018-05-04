@@ -17,11 +17,9 @@ import okhttp3.Response;
 public class CacheService extends Service {
     private DownloadBinder binder = new DownloadBinder();
     class DownloadBinder extends Binder {
-        public void doCache(final SQLiteDatabase db,List<Blog> blogList){
+        public void doCache(final SQLiteDatabase db,final List<Blog> blogList){
             db.beginTransaction();
             try{
-                db.delete("Blog",null,null);
-                db.delete("BlogDetail",null,null);
                 final ContentValues values = new ContentValues();
                 List<Blog> cacheBlogList = blogList;
                 for(final Blog blog:cacheBlogList){
@@ -40,28 +38,33 @@ public class CacheService extends Service {
                     values.clear();
                     Log.d("Debug:Blog缓存成功",String.valueOf(number));
 
-                    String dbUrl = "http://wcf.open.cnblogs.com/blog/post/body/";
-                    HttpUtils.sendRequest(dbUrl+blog.getBlogId(),new okhttp3.Callback(){
-                        @Override
-                        public void onResponse(Call call, Response response)throws IOException {
-                            String data = response.body().string();
-                            String parsedData = HttpUtils.getBlogDetail(data);
-                            values.put("blogId",blog.getBlogId());
-                            values.put("blogDetail",parsedData);
-                            db.insert("BlogDetail",null,values);
-                            values.clear();
-                            Log.d("Debug:BlogDetail缓存成功",blog.getBlogId());
-                        }
-                        @Override
-                        public void onFailure(Call call,IOException e){
-                            Log.e("Error","MainActivity/doCache/onFailure");
-                        }
-                    });
+                    doBlogDetailCache(blog,db);
                 }
+                db.setTransactionSuccessful();
             }finally{
                 db.endTransaction();
             }
         }
+    }
+    public void doBlogDetailCache(final Blog blog,final SQLiteDatabase db){
+        String dbUrl = "http://wcf.open.cnblogs.com/blog/post/body/";
+        HttpUtils.sendRequest(dbUrl+blog.getBlogId(),new okhttp3.Callback(){
+            @Override
+            public void onResponse(Call call, Response response)throws IOException {
+                String data = response.body().string();
+                String parsedData = HttpUtils.getBlogDetail(data);
+                ContentValues values = new ContentValues();
+                values.put("blogId",blog.getBlogId());
+                values.put("blogDetail",parsedData);
+                long count = db.insert("BlogDetail",null,values);
+                values.clear();
+                Log.d("Debug:BlogDetail缓存成功",String.valueOf(count));
+            }
+            @Override
+            public void onFailure(Call call,IOException e){
+                Log.e("Error","MainActivity/doCache/onFailure");
+            }
+        });
     }
     public CacheService() {
     }

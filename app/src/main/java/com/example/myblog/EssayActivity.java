@@ -3,6 +3,7 @@ package com.example.myblog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -19,7 +21,7 @@ import java.util.List;
 public class EssayActivity extends AppCompatActivity {
     Toolbar toolbar;
     RecyclerView recycler;
-    EssayAdapter adapter;
+    public static EssayAdapter adapter;
     TextView alert;
     FloatingActionButton add;
     public static List<Essay> essayList = new ArrayList<>();
@@ -66,11 +68,11 @@ public class EssayActivity extends AppCompatActivity {
         finish();
         return super.onSupportNavigateUp();
     }
-    public void myOnResume(){
+    /*public void myOnResume(){
         adapter.notifyDataSetChanged();
-    }
+    }*/
     public static void refreshAdapter(){
-        Cursor cursor = MainActivity.db.query("Essay",null,null,null,null,null,"essayId desc");
+        Cursor cursor = TabActivity.db.query("Essay",null,null,null,null,null,"essayId desc");
         if(cursor.moveToFirst()){
             essayList.clear();
             do{
@@ -88,5 +90,14 @@ public class EssayActivity extends AppCompatActivity {
             }while(cursor.moveToNext());
             cursor.close();
         }
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()){
+            case android.R.id.home:
+                TabActivity.viewpager.arrowScroll(1);
+                break;
+        }
+        return true;
     }
 }

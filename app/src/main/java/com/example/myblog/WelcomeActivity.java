@@ -10,7 +10,7 @@ public class WelcomeActivity extends AppCompatActivity {
     public Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg){
-            Intent intent = new Intent(WelcomeActivity.this,MainActivity.class);
+            Intent intent = new Intent(WelcomeActivity.this,TabActivity.class);
             startActivity(intent);
             finish();
             super.handleMessage(msg);
