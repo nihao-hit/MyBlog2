@@ -58,7 +58,7 @@ public class TabActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_tab);
 
-        helper = new MyDatabaseHelper(this,"MyBlogDB.db",null,5);
+        helper = new MyDatabaseHelper(this,"MyBlogDB.db",null,1);
         db = helper.getWritableDatabase();
         initService();
 

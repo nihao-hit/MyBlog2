@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyBlog</string>
+    <string name="app_name">MyEssay</string>
     <string name="blog">主页</string>
     <string name="settings">设置</string>
 </resources>

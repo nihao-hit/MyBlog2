@@ -39,6 +39,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db){
         db.execSQL(CREATE_BLOG);
         db.execSQL(CREATE_BLOGDETAIL);
+        db.execSQL(CREATE_ESSAY);
         Log.d("Debug:数据库创建成功","MyDatabaseHelper/onCreate");
     }
     @Override
